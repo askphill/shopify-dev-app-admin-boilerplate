@@ -22,7 +22,8 @@ Use this to quickly script product/collection operations, run audits, bulk-updat
 
 1. In the Dev Dashboard, go to your app's **Distribution** tab
 2. Select **Custom distribution** (this is a private dev tool, not a public app)
-3. Go to the **Home** tab → scroll to **Installs** → click **Install app**
+3. Enter your store domain (e.g. `your-store.myshopify.com`) and confirm
+4. Go to the **Home** tab → scroll to **Installs** → click **Install app**
 4. Select the store you want to install on → **Install**
 
 ### 3. Clone and install
