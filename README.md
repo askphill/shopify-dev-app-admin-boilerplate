@@ -6,17 +6,26 @@ Use this to quickly script product/collection operations, run audits, bulk-updat
 
 ## Setup
 
-### 1. Create a custom app in Shopify
+### 1. Create a custom app in the Dev Dashboard
 
-1. Go to your Shopify Admin → **Settings** → **Apps and sales channels** → **Develop apps**
-2. Click **Allow custom app development** if prompted
-3. Click **Create an app**, give it a name (e.g. "Dev Scripts")
-4. Go to **Configuration** → **Admin API access scopes**
-5. Select the scopes you need (at minimum: `read_products`, `write_products`)
-6. Click **Save**, then **Install app**
-7. Copy the **Client ID** and **Client Secret** from the **API credentials** tab
+> Legacy "Develop apps" in the Shopify admin is deprecated. All new custom apps must be created through the [Dev Dashboard](https://dev.shopify.com).
 
-### 2. Clone and install
+1. Go to [dev.shopify.com](https://dev.shopify.com) → **Apps** → **Create app**
+2. Select **Start from Dev Dashboard**, name your app, click **Create**
+3. Go to the **Versions** tab and configure:
+   - **App URL** — use `https://shopify.dev/apps/default-app-home` (this app isn't embedded)
+   - **Webhooks API version** — pick the latest
+   - **Access scopes** — add the scopes you need (e.g. `read_products`, `write_products`)
+4. Click **Release** to publish the version
+5. Go to the **Settings** tab → copy your **Client ID** and **Client Secret**
+
+### 2. Install the app on your store
+
+1. In the Dev Dashboard, go to your app's **Home** tab
+2. Scroll to **Installs** → click **Install app**
+3. Select the store you want to install on → **Install**
+
+### 3. Clone and install
 
 ```bash
 git clone https://github.com/askphill/shopify-dev-app-admin-boilerplate.git
@@ -24,7 +33,7 @@ cd shopify-dev-app-admin-boilerplate
 npm install
 ```
 
-### 3. Configure environment
+### 4. Configure environment
 
 ```bash
 cp .env.example .env
@@ -39,15 +48,17 @@ SHOPIFY_CLIENT_SECRET=your_client_secret
 SHOPIFY_ACCESS_TOKEN=
 ```
 
-### 4. Authenticate
+### 5. Get your access token
 
 ```bash
 npm run auth
 ```
 
-This opens your browser, you approve the app on the store, and the access token is automatically saved to `.env`.
+This uses the [client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant) — no browser needed. It POSTs your client ID + secret to Shopify and saves the access token to `.env`.
 
-### 5. Verify it works
+> **Note:** Tokens expire after 24 hours. The `query()` helper in `shopify.js` automatically detects expired tokens and refreshes them, so you don't need to re-run `auth.js` manually.
+
+### 6. Verify it works
 
 ```bash
 node shopify.js products list
@@ -139,15 +150,15 @@ Run them with:
 node examples/check-categories.js
 ```
 
-## Adding more scopes
+## Changing scopes
 
-If you need access beyond products (e.g. orders, customers, metafields), edit the `SCOPES` constant in `auth.js`:
+If you need access beyond products (e.g. orders, customers, metafields):
 
-```js
-const SCOPES = 'read_products,write_products,read_orders,write_metafields';
-```
-
-Then re-run `npm run auth` to get a new token with the updated scopes.
+1. Go to the Dev Dashboard → your app → **Versions** tab
+2. Update the **Access scopes**
+3. Click **Release** to publish a new version
+4. Re-install the app on your store (the store owner will be prompted to approve the new scopes)
+5. Run `npm run auth` to get a fresh token with the updated scopes
 
 Full list of scopes: https://shopify.dev/docs/api/usage/access-scopes
 
@@ -155,14 +166,24 @@ Full list of scopes: https://shopify.dev/docs/api/usage/access-scopes
 
 ```
 .
-├── auth.js          # One-time OAuth flow — saves access token to .env
-├── shopify.js       # GraphQL helper + CLI commands
+├── auth.js          # Client credentials grant — gets access token
+├── shopify.js       # GraphQL helper (with auto-refresh) + CLI commands
 ├── examples/        # Example scripts you can copy and adapt
 ├── .env.example     # Template for environment variables
 └── package.json
 ```
 
+## How auth works
+
+This boilerplate uses the [client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant) flow:
+
+1. Your app sends its client ID + secret directly to Shopify
+2. Shopify returns an access token (valid for 24 hours)
+3. When the token expires, `shopify.js` automatically refreshes it
+
+No browser, no redirect URI, no callback server needed. This works because the app is installed on a store you own.
+
 ## Requirements
 
 - Node.js 18+ (uses native `fetch`)
-- A Shopify store with custom app development enabled
+- A Shopify store with the app installed via the [Dev Dashboard](https://dev.shopify.com)
