@@ -1,73 +1,24 @@
 import 'dotenv/config';
-import { readFileSync, writeFileSync } from 'node:fs';
 
-const { SHOPIFY_STORE, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET } = process.env;
-let accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+const { SHOPIFY_STORE, SHOPIFY_ACCESS_TOKEN } = process.env;
+const ENDPOINT = `https://${SHOPIFY_STORE}/admin/api/2024-10/graphql.json`;
 
-const API_VERSION = '2026-01';
-const ENDPOINT = `https://${SHOPIFY_STORE}/admin/api/${API_VERSION}/graphql.json`;
-
-// --- Token management ---
-
-async function refreshToken() {
-  const res = await fetch(`https://${SHOPIFY_STORE}/admin/oauth/access_token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: SHOPIFY_CLIENT_ID,
-      client_secret: SHOPIFY_CLIENT_SECRET,
-    }),
-  });
-  const data = await res.json();
-  if (!data.access_token) {
-    console.error('Failed to refresh token:', data);
-    process.exit(1);
-  }
-
-  // Update .env file
-  const envPath = new URL('.env', import.meta.url).pathname;
-  let env = readFileSync(envPath, 'utf8');
-  env = env.replace(/SHOPIFY_ACCESS_TOKEN=.*/, `SHOPIFY_ACCESS_TOKEN=${data.access_token}`);
-  writeFileSync(envPath, env);
-
-  accessToken = data.access_token;
-  return accessToken;
+if (!SHOPIFY_ACCESS_TOKEN) {
+  console.error('No access token found. Run: node auth.js');
+  process.exit(1);
 }
 
 // --- GraphQL helper ---
 
 export async function query(graphql, variables = {}) {
-  if (!accessToken) {
-    if (!SHOPIFY_CLIENT_ID || !SHOPIFY_CLIENT_SECRET) {
-      console.error('No access token and no client credentials. Run: npm run auth');
-      process.exit(1);
-    }
-    await refreshToken();
-  }
-
-  let res = await fetch(ENDPOINT, {
+  const res = await fetch(ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Shopify-Access-Token': accessToken,
+      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
     },
     body: JSON.stringify({ query: graphql, variables }),
   });
-
-  // Token expired — refresh and retry once
-  if (res.status === 401) {
-    await refreshToken();
-    res = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': accessToken,
-      },
-      body: JSON.stringify({ query: graphql, variables }),
-    });
-  }
-
   const json = await res.json();
   if (json.errors) {
     console.error('GraphQL errors:', JSON.stringify(json.errors, null, 2));

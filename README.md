@@ -8,13 +8,11 @@ Use this to quickly script product/collection operations, run audits, bulk-updat
 
 ### 1. Create a custom app in the Dev Dashboard
 
-> Legacy "Develop apps" in the Shopify admin is deprecated. All new custom apps must be created through the [Dev Dashboard](https://dev.shopify.com).
-
 1. Go to [dev.shopify.com](https://dev.shopify.com) → **Apps** → **Create app**
 2. Select **Start from Dev Dashboard**, name your app, click **Create**
 3. Go to the **Versions** tab and configure:
-   - **App URL** — use `https://shopify.dev/apps/default-app-home` (this app isn't embedded)
-   - **Webhooks API version** — pick the latest
+   - **App URL** — set to `http://localhost:3000/callback`
+   - **Allowed redirection URL(s)** — add `http://localhost:3000/callback`
    - **Access scopes** — add the scopes you need (e.g. `read_products`, `write_products`)
 4. Click **Release** to publish the version
 5. Go to the **Settings** tab → copy your **Client ID** and **Client Secret**
@@ -48,15 +46,13 @@ SHOPIFY_CLIENT_SECRET=your_client_secret
 SHOPIFY_ACCESS_TOKEN=
 ```
 
-### 5. Get your access token
+### 5. Authenticate
 
 ```bash
 npm run auth
 ```
 
-This uses the [client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant) — no browser needed. It POSTs your client ID + secret to Shopify and saves the access token to `.env`.
-
-> **Note:** Tokens expire after 24 hours. The `query()` helper in `shopify.js` automatically detects expired tokens and refreshes them, so you don't need to re-run `auth.js` manually.
+This starts a local server, opens your browser to authorize the app on your store, and saves the access token to `.env` automatically.
 
 ### 6. Verify it works
 
@@ -166,8 +162,8 @@ Full list of scopes: https://shopify.dev/docs/api/usage/access-scopes
 
 ```
 .
-├── auth.js          # Client credentials grant — gets access token
-├── shopify.js       # GraphQL helper (with auto-refresh) + CLI commands
+├── auth.js          # OAuth flow — opens browser, saves access token to .env
+├── shopify.js       # GraphQL helper + CLI commands
 ├── examples/        # Example scripts you can copy and adapt
 ├── .env.example     # Template for environment variables
 └── package.json
@@ -175,13 +171,12 @@ Full list of scopes: https://shopify.dev/docs/api/usage/access-scopes
 
 ## How auth works
 
-This boilerplate uses the [client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant) flow:
-
-1. Your app sends its client ID + secret directly to Shopify
-2. Shopify returns an access token (valid for 24 hours)
-3. When the token expires, `shopify.js` automatically refreshes it
-
-No browser, no redirect URI, no callback server needed. This works because the app is installed on a store you own.
+1. `auth.js` starts a local server on `localhost:3000`
+2. Opens your browser to the Shopify OAuth authorize URL
+3. You approve the app on your store
+4. Shopify redirects back to `localhost:3000/callback` with a code
+5. The script exchanges the code for an access token (with HMAC verification)
+6. Token is saved to `.env` — you're done
 
 ## Requirements
 
