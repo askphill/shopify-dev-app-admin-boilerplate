@@ -18,11 +18,12 @@ Use this to quickly script product/collection operations, run audits, bulk-updat
 4. Click **Release** to publish the version
 5. Go to the **Settings** tab → copy your **Client ID** and **Client Secret**
 
-### 2. Install the app on your store
+### 2. Set distribution and install on your store
 
-1. In the Dev Dashboard, go to your app's **Home** tab
-2. Scroll to **Installs** → click **Install app**
-3. Select the store you want to install on → **Install**
+1. In the Dev Dashboard, go to your app's **Distribution** tab
+2. Select **Single-merchant install link** (this is a private dev tool, not a public app)
+3. Go to the **Home** tab → scroll to **Installs** → click **Install app**
+4. Select the store you want to install on → **Install**
 
 ### 3. Clone and install
 
