@@ -11,7 +11,8 @@ Use this to quickly script product/collection operations, run audits, bulk-updat
 1. Go to [dev.shopify.com](https://dev.shopify.com) → **Apps** → **Create app**
 2. Select **Start from Dev Dashboard**, name your app, click **Create**
 3. Go to the **Versions** tab and configure:
-   - **App URL** — set to `http://localhost:3000/callback`
+   - **App URL** — leave as default (`https://example.com` is fine)
+   - Uncheck **"Embed app in Shopify admin"** — this is a local CLI tool, not an embedded app
    - **Allowed redirection URL(s)** — add `http://localhost:3000/callback`
    - **Access scopes** — add the scopes you need (e.g. `read_products`, `write_products`)
 4. Click **Release** to publish the version
