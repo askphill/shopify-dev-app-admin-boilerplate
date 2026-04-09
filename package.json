@@ -1,0 +1,12 @@
+{
+  "name": "shopify-dev-app-admin",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "auth": "node auth.js",
+    "shopify": "node shopify.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
+  }
+}
