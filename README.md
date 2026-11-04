@@ -6,9 +6,11 @@ Use this to quickly script product/collection operations, run audits, bulk-updat
 
 ## Setup
 
+> **Using an AI agent?** Ask it to "set up this app". The skill in [`.claude/skills/shopify-app-setup/SKILL.md`](.claude/skills/shopify-app-setup/SKILL.md) walks any agent with a browser (built-in browser, Claude in Chrome or Chrome DevTools MCP) through every step below, asks you for the app name, store and scopes, and tests the result.
+
 ### 1. Create a custom app in the Dev Dashboard
 
-1. Go to [dev.shopify.com](https://dev.shopify.com) → **Apps** → **Create app**
+1. Go to [dev.shopify.com/dashboard](https://dev.shopify.com/dashboard) → **Apps** → **Create app**
 2. Select **Start from Dev Dashboard**, name your app, click **Create**
 3. Go to the **Versions** tab and configure:
    - **App URL** — leave as default (`https://example.com` is fine)
@@ -46,8 +48,11 @@ Fill in your `.env`:
 SHOPIFY_STORE=your-store.myshopify.com
 SHOPIFY_CLIENT_ID=your_client_id
 SHOPIFY_CLIENT_SECRET=your_client_secret
+SHOPIFY_SCOPES=read_products,write_products
 SHOPIFY_ACCESS_TOKEN=
 ```
+
+> `SHOPIFY_SCOPES` must match the access scopes on the released app version.
 
 > `SHOPIFY_ACCESS_TOKEN` can stay empty — it will be filled automatically in the next step.
 
@@ -57,7 +62,7 @@ SHOPIFY_ACCESS_TOKEN=
 npm run auth
 ```
 
-This starts a local server, opens your browser to authorize the app on your store, and saves the access token to `.env` automatically.
+This starts a local server, opens your browser (set `NO_BROWSER=1` to only print the URL) to authorize the app on your store, and saves the access token to `.env` automatically.
 
 ### 6. Verify it works
 
@@ -159,7 +164,8 @@ If you need access beyond products (e.g. orders, customers, metafields):
 2. Update the **Access scopes**
 3. Click **Release** to publish a new version
 4. Re-install the app on your store (the store owner will be prompted to approve the new scopes)
-5. Run `npm run auth` to get a fresh token with the updated scopes
+5. Update `SHOPIFY_SCOPES` in `.env` to match
+6. Run `npm run auth` to get a fresh token with the updated scopes
 
 Full list of scopes: https://shopify.dev/docs/api/usage/access-scopes
 
@@ -186,4 +192,4 @@ Full list of scopes: https://shopify.dev/docs/api/usage/access-scopes
 ## Requirements
 
 - Node.js 18+ (uses native `fetch`)
-- A Shopify store with the app installed via the [Dev Dashboard](https://dev.shopify.com)
+- A Shopify store with the app installed via the [Dev Dashboard](https://dev.shopify.com/dashboard)
