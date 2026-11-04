@@ -7,7 +7,7 @@ import { execSync } from 'node:child_process';
 const { SHOPIFY_STORE, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET } = process.env;
 const PORT = 3000;
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;
-const SCOPES = 'read_products,write_products';
+const SCOPES = process.env.SHOPIFY_SCOPES || 'read_products,write_products';
 const nonce = randomBytes(16).toString('hex');
 
 const authUrl = `https://${SHOPIFY_STORE}/admin/oauth/authorize?` +
@@ -82,5 +82,11 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Opening browser for Shopify authorization...\n`);
   console.log(`If it doesn't open, visit:\n${authUrl}\n`);
-  execSync(`open "${authUrl}"`);
+  if (process.env.NO_BROWSER) return;
+  const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start ""' : 'xdg-open';
+  try {
+    execSync(`${opener} "${authUrl}"`);
+  } catch {
+    console.log('Could not open a browser automatically. Open the URL above manually.');
+  }
 });
